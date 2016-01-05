@@ -1,6 +1,7 @@
 # Dragon-Escape
 A StarCraft II Arcade map/mod created for the 2015 Rock the Cabinet contest from Blizzard Entertainment.
 **Map will be uploaded once the official contest is over and I am allowed to update the map.**
+Additional information about Dragon Escape and my contest entry can be found [here (my submission page)](http://us.battle.net/sc2/en/forum/topic/18300617242?page=1#15), [here (my additional informational page)](http://www.sc2mapster.com/maps/dragon-escape), and [here (official contest page)](http://us.battle.net/arcade/en/blog/19821982/rock-the-cabinet-2015-begins-7-16-2015).
 
 
 ## What are StarCraft II Arcade maps/mods?
