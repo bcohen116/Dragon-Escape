@@ -4,7 +4,7 @@ A StarCraft II Arcade map/mod created for the 2015 Rock the Cabinet contest from
 Additional information about Dragon Escape and my contest entry can be found [here (my submission page)](http://us.battle.net/sc2/en/forum/topic/18300617242?page=1#15), [here (my additional informational page)](http://www.sc2mapster.com/maps/dragon-escape), and [here (official contest page)](http://us.battle.net/arcade/en/blog/19821982/rock-the-cabinet-2015-begins-7-16-2015).
 
 
-**In order to open the project, you might need to log in first through the File -> Publish option. Then cancel and open the map normally. Crashes have tended to occur when you do not do this due to the WarCraft III Mod.**
+**In order to open the project, you might need to log in first through the File -> Publish option in the StarCraft II Editor. Then cancel and open the map normally. Crashes have tended to occur when you do not do this due to the WarCraft III Mod.**
 
 ## What are StarCraft II Arcade maps/mods?
 The StarCraft II Arcade is a community driven and made zone for games and mods made in the StarCraft II Editor. The editor is extremely powerful, and there are games in pretty much every category you can think of made completely from this editor.
