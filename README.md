@@ -29,6 +29,11 @@ Once I have uploaded the map, you'll have to have the StarCraft II Editor to be 
 ## Is this map finished?
 Of course not! A map is never finished. Also considering the very limited time span I had to develop for this contest, there is still a ton to be worked on. For example, controls could be smoother, UI improved, abilities polished, new dragons created, new game modes, balancing. There are endless possibilities. Feel free to add some of these yourself.
 
-## 
+## What went through my mind when I created Dragon Escape?
+When the contest was announced, I knew I wanted to participate, as I love fiddling with programming in my free time. I had to think about a few things: 
+* Who is my audience?
+* What would be creative and new?
+* How do my skills fit into the previous two?
+After some thought, I came to the realization that there were not many racing games in the Arcade. Additionally, most people who play the Arcade are just looking for some fun in their free time, and a racing game fits this. I then thought, what would I need to know to be able to make this? I felt that there was a basic trigger and data knowledge needed to create this. After that I was set on creating this project!
 
 
