@@ -34,6 +34,7 @@ When the contest was announced, I knew I wanted to participate, as I love fiddli
 * Who is my audience?
 * What would be creative and new?
 * How do my skills fit into the previous two?
+
 After some thought, I came to the realization that there were not many racing games in the Arcade. Additionally, most people who play the Arcade are just looking for some fun in their free time, and a racing game fits this. I then thought, what would I need to know to be able to make this? I felt that there was a basic trigger and data knowledge needed to create this. After that I was set on creating this project!
 
 
