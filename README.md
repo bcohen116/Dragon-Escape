@@ -8,7 +8,7 @@ The StarCraft II Arcade is a community driven and made zone for games and mods m
 
 ## What is the StarCraft II Editor?
 This editor is required to be able to make games and mods for the Arcade. There are multiple pieces of the editor. Pictures are included and you might need to scroll down a bit to see what is being talked about. The examples of the editor are like these: 
-* The ground and land piece (you can find pictures [here](http://us.battle.net/sc2/en/game/maps-and-mods/tutorials/terrain/1)).
+* The ground and land piece known as Terrain (you can find pictures [here](http://us.battle.net/sc2/en/game/maps-and-mods/tutorials/terrain/1)).
 * Data piece for holding art and variable attributes like speed of an object (pics [here](http://us.battle.net/sc2/en/game/maps-and-mods/tutorials/data/1))
 * Triggers, which are the main coding aspect. You can do this using pure script(usually done in something like notepad++), or with the dropdown based editor ([like this](http://us.battle.net/sc2/en/game/maps-and-mods/tutorials/trigger/1)) both have the same capabilities.
 * If you have access to a 3d model program, you can also create your own art assets through the StarCraft II art tools ([like this](http://us.battle.net/sc2/en/blog/10788362/starcraft-ii-art-tools-open-beta-8-30-2013))
