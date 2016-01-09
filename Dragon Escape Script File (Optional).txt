@@ -1,0 +1,1772 @@
+//==================================================================================================
+// 
+// Generated Map Script
+// 
+// Name:   Dragon Escape [RTC]
+// 
+//==================================================================================================
+include "TriggerLibs/NativeLib"
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+void InitLibs () {
+    libNtve_InitLib();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Global Structures
+//--------------------------------------------------------------------------------------------------
+struct gs_Stats {
+    int lv_totalWins;
+    int lv_losses;
+    int lv_selectionCounter;
+    bank lv_playerBanks;
+    bool lv_winsCounted;
+    int lv_points;
+    int lv_raceWins;
+    bool lv_fishyAchievement;
+    bool lv_alphaTestAchievement;
+    bool lv__50WinsAchievement;
+    bool lv__50LossesAchievement;
+    int lv_winnings;
+    bool lv__50RaceWinsAchievement;
+};
+
+struct gs_GameSettings {
+    bool lv_playerisDoneSelecting;
+    int lv_playersDonePicking;
+    int lv_unitselected;
+    string lv_playerID;
+    region lv_startingRegion;
+    bool lv_unithasSpawned;
+    string lv_playerString;
+};
+
+struct gs_UI {
+    int lv_statisticsBoard;
+    timer lv_characterSelectionTimer;
+    int lv_characterSelectionTimerWindow;
+    int lv_totalUnitsPicked;
+    timer lv_matchTimer;
+    int lv_characterSelection;
+    int[27] lv_characterSelectionItems;
+    int[26] lv_characterSelectionItems2;
+    int[26] lv_characterSelectionItems3;
+    int lv_matchTimerWindow;
+    bool lv_matchTimerhasbeenCreated;
+    int[5] lv_achievementDialog;
+    int[11] lv_achievementDialogItems;
+    int lv_resultsDialog;
+    int[8] lv_resultLabels;
+    bool[5] lv_finishedMatch;
+    timer lv_finishTimer;
+    int lv_finishTimerWindow;
+    int lv_achievementResultsDialog;
+    int[21] lv_achievementResultsDialogItems;
+};
+
+struct gs_RaceInfo {
+    int lv_laps;
+    int lv_place;
+};
+
+struct gs_Units {
+    unitgroup lv_allUnits;
+    unitgroup lv_playerUnit;
+    unit lv_dragon;
+    unitgroup lv_fantasyUnits;
+    unitgroup lv_fantasyUnits2;
+};
+
+//--------------------------------------------------------------------------------------------------
+// Global Variables
+//--------------------------------------------------------------------------------------------------
+gs_Stats[5] gv_stats;
+gs_GameSettings[5] gv_gameSettings;
+gs_UI gv_uI;
+gs_RaceInfo[5] gv_raceInfo;
+gs_Units[5] gv_units;
+
+void InitGlobals () {
+    int init_i;
+    int init_i1;
+
+    for (init_i = 0; init_i <= 4; init_i += 1) {
+        gv_gameSettings[init_i].lv_unitselected = c_invalidDialogControlId;
+        gv_gameSettings[init_i].lv_playerID = "";
+        gv_gameSettings[init_i].lv_playerString = "";
+    }
+    gv_uI.lv_statisticsBoard = c_invalidDialogId;
+    gv_uI.lv_characterSelectionTimer = TimerCreate();
+    gv_uI.lv_characterSelectionTimerWindow = c_timerWindowNone;
+    gv_uI.lv_matchTimer = TimerCreate();
+    gv_uI.lv_characterSelection = c_invalidDialogId;
+    for (init_i1 = 0; init_i1 <= 26; init_i1 += 1) {
+        gv_uI.lv_characterSelectionItems[init_i1] = c_invalidDialogControlId;
+    }
+    for (init_i1 = 0; init_i1 <= 25; init_i1 += 1) {
+        gv_uI.lv_characterSelectionItems2[init_i1] = c_invalidDialogControlId;
+    }
+    for (init_i1 = 0; init_i1 <= 25; init_i1 += 1) {
+        gv_uI.lv_characterSelectionItems3[init_i1] = c_invalidDialogControlId;
+    }
+    gv_uI.lv_matchTimerWindow = c_timerWindowNone;
+    for (init_i1 = 0; init_i1 <= 4; init_i1 += 1) {
+        gv_uI.lv_achievementDialog[init_i1] = c_invalidDialogId;
+    }
+    for (init_i1 = 0; init_i1 <= 10; init_i1 += 1) {
+        gv_uI.lv_achievementDialogItems[init_i1] = c_invalidDialogControlId;
+    }
+    gv_uI.lv_resultsDialog = c_invalidDialogId;
+    for (init_i1 = 0; init_i1 <= 7; init_i1 += 1) {
+        gv_uI.lv_resultLabels[init_i1] = c_invalidDialogControlId;
+    }
+    gv_uI.lv_finishTimer = TimerCreate();
+    gv_uI.lv_finishTimerWindow = c_timerWindowNone;
+    gv_uI.lv_achievementResultsDialog = c_invalidDialogId;
+    for (init_i1 = 0; init_i1 <= 20; init_i1 += 1) {
+        gv_uI.lv_achievementResultsDialogItems[init_i1] = c_invalidDialogControlId;
+    }
+    for (init_i = 0; init_i <= 4; init_i += 1) {
+        gv_units[init_i].lv_allUnits = UnitGroupEmpty();
+        gv_units[init_i].lv_playerUnit = UnitGroupEmpty();
+        gv_units[init_i].lv_fantasyUnits = UnitGroupEmpty();
+        gv_units[init_i].lv_fantasyUnits2 = UnitGroupEmpty();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+// Global Function Declarations
+//--------------------------------------------------------------------------------------------------
+void gf_CreateAchievement (text lp_text, int lp_player);
+void gf_Fade ();
+void gf_BankInitialization ();
+void gf_StoreBankInfo ();
+
+//--------------------------------------------------------------------------------------------------
+// Trigger Variables
+//--------------------------------------------------------------------------------------------------
+trigger gt_MeleeInitialization;
+trigger gt_Fishy;
+trigger gt_AlphaTest;
+trigger gt__50Wins;
+trigger gt__50RaceWins;
+trigger gt_CreateAchievementDialog;
+trigger gt_CharacterSelect;
+trigger gt_CharacterSelectCreation;
+trigger gt_LockSelections;
+trigger gt_DialogPicked;
+trigger gt_DoneButton;
+trigger gt_PickTimerEnds;
+trigger gt_SelectTrack;
+trigger gt_Reset;
+trigger gt_Reset2;
+trigger gt_Ports;
+trigger gt_WaterLava;
+trigger gt_WaterLava2;
+trigger gt_FantasyAttacks;
+trigger gt_Laps;
+trigger gt_Results;
+trigger gt_UnitisCreated;
+trigger gt_Camera;
+trigger gt_Codes;
+trigger gt_Statistics;
+trigger gt_RaceTimerEnds;
+
+//--------------------------------------------------------------------------------------------------
+// Global Functions
+//--------------------------------------------------------------------------------------------------
+void gf_CreateAchievement (text lp_text, int lp_player) {
+    // Implementation
+    SoundPlayForPlayer(SoundLink("UI_BNet_Achievement", -1), c_maxPlayers, PlayerGroupSingle(lp_player), 100.0, 0.0);
+    DialogCreate(400, 200, c_anchorBottom, 0, 0, true);
+    gv_uI.lv_achievementDialog[lp_player] = DialogLastCreated();
+    libNtve_gf_CreateDialogItemLabel(gv_uI.lv_achievementDialog[lp_player], 200, 100, c_anchorCenter, 50, 50, lp_text, Color(0,66*100/255,100), false, 2.0);
+    gv_uI.lv_achievementDialogItems[0] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(gv_uI.lv_achievementDialog[lp_player], 64, 64, c_anchorLeft, 50, 0, StringToText(""), "Assets\\Textures\\ui_achievement.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_achievementDialogItems[1] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemLabel(gv_uI.lv_achievementDialog[lp_player], 300, 100, c_anchorTop, 0, 50, StringExternal("Param/Value/77DE1E73"), Color(0,66*100/255,100), false, 2.0);
+    gv_uI.lv_achievementDialogItems[2] = DialogControlLastCreated();
+    DialogSetVisible(gv_uI.lv_achievementDialog[lp_player], PlayerGroupSingle(lp_player), true);
+}
+
+void gf_Fade () {
+    int auto51592513_n;
+    int auto51592513_i;
+
+    // Variable Declarations
+    fixed lv_percentage;
+
+    // Variable Initialization
+
+    // Implementation
+    auto51592513_n = 100;
+    for (auto51592513_i = 1; auto51592513_i <= auto51592513_n; auto51592513_i += 1) {
+        Wait(0.1, c_timeGame);
+        DialogSetTransparency(gv_uI.lv_achievementDialog[1], lv_percentage);
+        DialogSetTransparency(gv_uI.lv_achievementDialog[2], lv_percentage);
+        DialogSetTransparency(gv_uI.lv_achievementDialog[3], lv_percentage);
+        DialogSetTransparency(gv_uI.lv_achievementDialog[4], lv_percentage);
+        lv_percentage = (lv_percentage + 1.0);
+    }
+    DialogDestroy(gv_uI.lv_achievementDialog[1]);
+    DialogDestroy(gv_uI.lv_achievementDialog[2]);
+    DialogDestroy(gv_uI.lv_achievementDialog[3]);
+    DialogDestroy(gv_uI.lv_achievementDialog[4]);
+}
+
+void gf_BankInitialization () {
+    // Implementation
+    gv_stats[1].lv_playerBanks = BankLastCreated();
+    gv_stats[2].lv_playerBanks = BankLastCreated();
+    gv_stats[3].lv_playerBanks = BankLastCreated();
+    gv_stats[4].lv_playerBanks = BankLastCreated();
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        gv_stats[IntLoopCurrent()].lv_totalWins = BankValueGetAsInt(gv_stats[IntLoopCurrent()].lv_playerBanks, "Wins", "Stats");
+        gv_stats[IntLoopCurrent()].lv_raceWins = BankValueGetAsInt(gv_stats[IntLoopCurrent()].lv_playerBanks, "Race Wins", "Stats");
+        gv_stats[IntLoopCurrent()].lv_fishyAchievement = BankValueGetAsFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "Fishy", "Achievements");
+        gv_stats[IntLoopCurrent()].lv_alphaTestAchievement = BankValueGetAsFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "Alpha Test", "Achievements");
+        gv_stats[IntLoopCurrent()].lv__50WinsAchievement = BankValueGetAsFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "50 Wins", "Achievements");
+        gv_stats[IntLoopCurrent()].lv__50RaceWinsAchievement = BankValueGetAsFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "50 Race Wins", "Achievements");
+    }
+    IntLoopEnd();
+}
+
+void gf_StoreBankInfo () {
+    // Implementation
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        BankValueSetFromInt(gv_stats[IntLoopCurrent()].lv_playerBanks, "Wins", "Stats", gv_stats[IntLoopCurrent()].lv_totalWins);
+        BankSave(gv_stats[IntLoopCurrent()].lv_playerBanks);
+        BankValueSetFromInt(gv_stats[IntLoopCurrent()].lv_playerBanks, "Race Wins", "Stats", gv_stats[IntLoopCurrent()].lv_raceWins);
+        BankSave(gv_stats[IntLoopCurrent()].lv_playerBanks);
+        BankValueSetFromFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "Fishy", "Achievements", gv_stats[IntLoopCurrent()].lv_fishyAchievement);
+        BankSave(gv_stats[IntLoopCurrent()].lv_playerBanks);
+        BankValueSetFromFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "Alpha Test", "Achievements", gv_stats[IntLoopCurrent()].lv_alphaTestAchievement);
+        BankSave(gv_stats[IntLoopCurrent()].lv_playerBanks);
+        BankValueSetFromFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "50 Wins", "Achievements", gv_stats[IntLoopCurrent()].lv__50WinsAchievement);
+        BankSave(gv_stats[IntLoopCurrent()].lv_playerBanks);
+        BankValueSetFromFlag(gv_stats[IntLoopCurrent()].lv_playerBanks, "50 Race Wins", "Achievements", gv_stats[IntLoopCurrent()].lv__50RaceWinsAchievement);
+        BankSave(gv_stats[IntLoopCurrent()].lv_playerBanks);
+    }
+    IntLoopEnd();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Melee Initialization
+//--------------------------------------------------------------------------------------------------
+bool gt_MeleeInitialization_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeAllianceButton, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeBattleUI, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeCashPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeConsolePanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeControlGroupPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeCreditsPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeHeroPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeInfoPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeInventoryPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeMercenaryPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeIdleWorkerButton, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeLeaderPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeMinimapPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeBattleReportPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeMissionTimePanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeObjectivePanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypePingPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypePlanetPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypePylonButton, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeResourcePanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeResearchPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeResearchPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeRoomPanel, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeStatusUI, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeSupply, false);
+    UISetFrameVisible(PlayerGroupAll(), c_syncFrameTypeTeamResourceButton, false);
+    HelpPanelAddTip(PlayerGroupAll(), libNtve_gf_FormatTipTitle(StringExternal("Param/Value/18F3A3B8"), libNtve_ge_TipType_NormalTip), StringExternal("Param/Value/265EE4D0"), StringToText(""), "Assets\\Textures\\ui-editoricon-data_types_soundtracks.dds");
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        TechTreeAbilityAllow(IntLoopCurrent(), AbilityCommand("War3Attack", 0), false);
+        TechTreeAbilityAllow(IntLoopCurrent(), AbilityCommand("attack", 0), false);
+        libNtve_gf_SetAlliance(1, IntLoopCurrent(), libNtve_ge_AllianceSetting_AllyWithSharedVision);
+        libNtve_gf_SetAlliance(2, IntLoopCurrent(), libNtve_ge_AllianceSetting_AllyWithSharedVision);
+        libNtve_gf_SetAlliance(3, IntLoopCurrent(), libNtve_ge_AllianceSetting_AllyWithSharedVision);
+        libNtve_gf_SetAlliance(4, IntLoopCurrent(), libNtve_ge_AllianceSetting_AllyWithSharedVision);
+        gv_gameSettings[IntLoopCurrent()].lv_playerID = PlayerHandle(IntLoopCurrent());
+        VisRevealArea(IntLoopCurrent(), RegionEntireMap(), 0.0, true);
+    }
+    IntLoopEnd();
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(14));
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(18));
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(37));
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(34));
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(32));
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(30));
+    UnitGroupAdd(gv_units[0].lv_fantasyUnits, UnitFromId(13));
+    UnitGroupLoopBegin(gv_units[0].lv_fantasyUnits);
+    for ( ; !UnitGroupLoopDone() ; UnitGroupLoopStep() ) {
+        TechTreeAbilityAllow(UnitGetOwner(UnitGroupLoopCurrent()), AbilityCommand("move", 0), false);
+    }
+    UnitGroupLoopEnd();
+    libNtve_gf_MakeUnitInvulnerable(UnitFromId(12), true);
+    libNtve_gf_MakeUnitInvulnerable(UnitFromId(60), true);
+    libNtve_gf_MakeUnitInvulnerable(UnitFromId(59), true);
+    libNtve_gf_MakeUnitInvulnerable(UnitFromId(3), true);
+    libNtve_gf_MakeUnitInvulnerable(UnitFromId(12), true);
+    SoundChannelPause(PlayerGroupAll(), c_soundCategoryAmbient, true);
+    SoundtrackPause(PlayerGroupAll(), c_soundtrackCategoryMusic, true, false);
+    SoundtrackStop(PlayerGroupAll(), c_soundtrackCategoryMusic, false);
+    SoundChannelStop(PlayerGroupAll(), c_soundCategoryMusic);
+    SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "UnknownSoundtrack", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+    SoundChannelSetVolume(PlayerGroupAll(), c_soundCategoryAmbient, 0.0, 0.0);
+    SoundChannelSetVolume(PlayerGroupAll(), c_soundCategoryMusic, 60.0, 0.0);
+    TriggerExecute(gt_SelectTrack, true, false);
+    TriggerEnable(gt_Camera, true);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_MeleeInitialization_Init () {
+    gt_MeleeInitialization = TriggerCreate("gt_MeleeInitialization_Func");
+    TriggerAddEventMapInit(gt_MeleeInitialization);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Fishy
+//--------------------------------------------------------------------------------------------------
+bool gt_Fishy_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    bool lv_fishyisHere;
+
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(60.0, c_timeGame);
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        if ((gv_gameSettings[IntLoopCurrent()].lv_playerID == "1-S2-1-2399006")) {
+            lv_fishyisHere = true;
+        }
+        else {
+        }
+    }
+    IntLoopEnd();
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        if ((lv_fishyisHere == true)) {
+            DialogDestroy(gv_uI.lv_achievementDialog[IntLoopCurrent()]);
+            gf_CreateAchievement((TextWithColor(PlayerName(IntLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(IntLoopCurrent(), false))) + StringExternal("Param/Value/F065E4CF")), IntLoopCurrent());
+            gv_stats[IntLoopCurrent()].lv_fishyAchievement = true;
+        }
+        else {
+        }
+    }
+    IntLoopEnd();
+    gf_Fade();
+    gf_StoreBankInfo();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Fishy_Init () {
+    gt_Fishy = TriggerCreate("gt_Fishy_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Alpha Test
+//--------------------------------------------------------------------------------------------------
+bool gt_AlphaTest_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(120.0, c_timeGame);
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        DialogDestroy(gv_uI.lv_achievementDialog[IntLoopCurrent()]);
+        gf_CreateAchievement((TextWithColor(PlayerName(IntLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(IntLoopCurrent(), false))) + StringExternal("Param/Value/C2AEE171")), IntLoopCurrent());
+        gv_stats[IntLoopCurrent()].lv_alphaTestAchievement = true;
+    }
+    IntLoopEnd();
+    gf_Fade();
+    gf_StoreBankInfo();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_AlphaTest_Init () {
+    gt_AlphaTest = TriggerCreate("gt_AlphaTest_Func");
+    TriggerEnable(gt_AlphaTest, false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: 50 Wins
+//--------------------------------------------------------------------------------------------------
+bool gt__50Wins_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        if ((gv_stats[IntLoopCurrent()].lv_totalWins >= 50)) {
+            DialogDestroy(gv_uI.lv_achievementDialog[IntLoopCurrent()]);
+            gf_CreateAchievement((TextWithColor(PlayerName(IntLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(IntLoopCurrent(), false))) + StringExternal("Param/Value/21B4941F")), IntLoopCurrent());
+            gv_stats[IntLoopCurrent()].lv__50WinsAchievement = true;
+        }
+        else {
+        }
+    }
+    IntLoopEnd();
+    gf_Fade();
+    gf_StoreBankInfo();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt__50Wins_Init () {
+    gt__50Wins = TriggerCreate("gt__50Wins_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: 50 Race Wins
+//--------------------------------------------------------------------------------------------------
+bool gt__50RaceWins_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        if ((gv_stats[IntLoopCurrent()].lv_raceWins >= 50)) {
+            DialogDestroy(gv_uI.lv_achievementDialog[IntLoopCurrent()]);
+            gf_CreateAchievement((TextWithColor(PlayerName(IntLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(IntLoopCurrent(), false))) + StringExternal("Param/Value/42DB1767")), IntLoopCurrent());
+            gv_stats[IntLoopCurrent()].lv__50WinsAchievement = true;
+        }
+        else {
+        }
+    }
+    IntLoopEnd();
+    gf_Fade();
+    gf_StoreBankInfo();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt__50RaceWins_Init () {
+    gt__50RaceWins = TriggerCreate("gt__50RaceWins_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Create Achievement Dialog
+//--------------------------------------------------------------------------------------------------
+bool gt_CreateAchievementDialog_Func (bool testConds, bool runActions) {
+    // Conditions
+    if (testConds) {
+        if (!(((EventDialogControl() == gv_uI.lv_characterSelectionItems[26]) || (EventDialogControl() == gv_uI.lv_achievementResultsDialogItems[20])))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((EventDialogControl() == gv_uI.lv_characterSelectionItems[26])) {
+        DialogCreate(900, 235, c_anchorCenter, 0, 0, true);
+        gv_uI.lv_achievementDialog[EventPlayer()] = DialogLastCreated();
+        DialogSetImageVisible(gv_uI.lv_achievementDialog[EventPlayer()], false);
+        libNtve_gf_CreateDialogItemImage(gv_uI.lv_achievementDialog[EventPlayer()], 900, 235, c_anchorCenter, 0, 0, StringToText(""), "Assets\\Textures\\storm_ui_glues_loading_playerframe_red.dds", c_triggerImageTypeNormal, false, Color(78*100/255,42*100/255,4*100/255), c_triggerBlendModeNormal);
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_achievementDialog[EventPlayer()], 400, 50, c_anchorTopLeft, 15, 15, (StringExternal("Param/Value/A980D3AB") + libNtve_gf_ConvertBooleanToText(gv_stats[EventPlayer()].lv_fishyAchievement)), ColorWithAlpha(0,0,0,0), false, 2.0);
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_achievementDialog[EventPlayer()], 400, 50, c_anchorTopLeft, 15, 65, (StringExternal("Param/Value/1BEFD87A") + libNtve_gf_ConvertBooleanToText(gv_stats[EventPlayer()].lv_alphaTestAchievement)), ColorWithAlpha(0,0,0,0), false, 2.0);
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_achievementDialog[EventPlayer()], 400, 50, c_anchorTopLeft, 15, 125, (StringExternal("Param/Value/55351EDF") + libNtve_gf_ConvertBooleanToText(gv_stats[EventPlayer()].lv__50RaceWinsAchievement)), ColorWithAlpha(0,0,0,0), false, 2.0);
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_achievementDialog[EventPlayer()], 400, 50, c_anchorTopLeft, 15, 180, (StringExternal("Param/Value/DA49629B") + libNtve_gf_ConvertBooleanToText(gv_stats[EventPlayer()].lv__50WinsAchievement)), ColorWithAlpha(0,0,0,0), false, 2.0);
+        libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 50, c_anchorRight, 50, 50, StringToText(""), StringExternal("Param/Value/46A6020A"), "");
+        gv_uI.lv_achievementResultsDialogItems[20] = DialogControlLastCreated();
+        DialogSetVisible(gv_uI.lv_achievementDialog[EventPlayer()], PlayerGroupSingle(EventPlayer()), true);
+        DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[26], PlayerGroupSingle(EventPlayer()), false);
+    }
+    else {
+    }
+    if ((EventDialogControl() == gv_uI.lv_achievementResultsDialogItems[20])) {
+        DialogSetVisible(gv_uI.lv_achievementDialog[EventPlayer()], PlayerGroupSingle(EventPlayer()), false);
+        DialogDestroy(gv_uI.lv_achievementDialog[EventPlayer()]);
+        DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[26], PlayerGroupSingle(EventPlayer()), true);
+    }
+    else {
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_CreateAchievementDialog_Init () {
+    gt_CreateAchievementDialog = TriggerCreate("gt_CreateAchievementDialog_Func");
+    TriggerAddEventDialogControl(gt_CreateAchievementDialog, c_playerAny, c_invalidDialogControlId, c_triggerControlEventTypeClick);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Character Select
+//--------------------------------------------------------------------------------------------------
+bool gt_CharacterSelect_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    gv_gameSettings[0].lv_playersDonePicking = 0;
+    if ((gv_uI.lv_characterSelection == c_invalidDialogId)) {
+        TriggerExecute(gt_CharacterSelectCreation, true, false);
+    }
+    else {
+        TimerStart(gv_uI.lv_characterSelectionTimer, 60.0, false, c_timeGame);
+        TimerWindowShow(gv_uI.lv_characterSelectionTimerWindow, PlayerGroupAll(), true);
+        DialogSetVisible(gv_uI.lv_characterSelection, PlayerGroupAll(), true);
+    }
+    gv_gameSettings[1].lv_unitselected = gv_uI.lv_characterSelectionItems[0];
+    gv_gameSettings[2].lv_unitselected = gv_uI.lv_characterSelectionItems[0];
+    gv_gameSettings[3].lv_unitselected = gv_uI.lv_characterSelectionItems[0];
+    gv_gameSettings[4].lv_unitselected = gv_uI.lv_characterSelectionItems[0];
+    TriggerEnable(gt_Laps, true);
+    UISetWorldVisible(PlayerGroupAll(), false);
+    IntLoopBegin(0, 8);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[IntLoopCurrent()], PlayerGroupAll(), true);
+        DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[IntLoopCurrent()], PlayerGroupAll(), 0.0, 60.0);
+    }
+    IntLoopEnd();
+    DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[12], PlayerGroupAll(), true);
+    DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[0], PlayerGroupAll(), false);
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[0], PlayerGroupAll(), 0.0, 0.0);
+    DialogSetVisible(gv_uI.lv_resultsDialog, PlayerGroupAll(), false);
+    TriggerExecute(gt_LockSelections, true, false);
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        gv_raceInfo[IntLoopCurrent()].lv_place = 0;
+        gv_gameSettings[IntLoopCurrent()].lv_unithasSpawned = false;
+        gv_uI.lv_finishedMatch[IntLoopCurrent()] = false;
+        if ((PlayerType(IntLoopCurrent()) == c_playerTypeComputer)) {
+            gv_gameSettings[IntLoopCurrent()].lv_playerisDoneSelecting = true;
+            gv_gameSettings[0].lv_playersDonePicking = (gv_gameSettings[0].lv_playersDonePicking + 1);
+        }
+        else {
+        }
+        if ((PlayerStatus(IntLoopCurrent()) == c_playerStatusActive)) {
+            UnitCreate(1, "Bronzedragon", 0, IntLoopCurrent(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+            gv_units[IntLoopCurrent()].lv_dragon = UnitLastCreated();
+            UnitAbilityEnable(gv_units[IntLoopCurrent()].lv_dragon, "move", false);
+            gv_gameSettings[IntLoopCurrent()].lv_unithasSpawned = true;
+        }
+        else {
+        }
+    }
+    IntLoopEnd();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_CharacterSelect_Init () {
+    gt_CharacterSelect = TriggerCreate("gt_CharacterSelect_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Character Select Creation
+//--------------------------------------------------------------------------------------------------
+bool gt_CharacterSelectCreation_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_row1;
+    int lv_row2;
+    int lv_row3;
+    int lv_row35;
+    int lv_row4;
+    int lv_row5;
+    int lv_column1;
+    int lv_column2;
+    int lv_column25;
+    int lv_column26;
+    int lv_column3;
+    int lv_column4;
+    int lv_column5;
+
+    // Variable Initialization
+    lv_row1 = 50;
+    lv_row2 = 255;
+    lv_row3 = 460;
+    lv_row35 = 464;
+    lv_row4 = 685;
+    lv_row5 = 890;
+    lv_column1 = 50;
+    lv_column2 = 255;
+    lv_column25 = 332;
+    lv_column26 = 336;
+    lv_column3 = 460;
+    lv_column4 = 665;
+    lv_column5 = 890;
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TimerStart(gv_uI.lv_characterSelectionTimer, 60.0, false, c_timeGame);
+    gv_uI.lv_characterSelectionTimer = TimerLastStarted();
+    TimerWindowCreate(gv_uI.lv_characterSelectionTimer, StringExternal("Param/Value/5DBBCC53"), true, false);
+    gv_uI.lv_characterSelectionTimerWindow = TimerWindowLastCreated();
+    TimerWindowShowProgressBar(gv_uI.lv_characterSelectionTimerWindow, true);
+    TimerWindowSetProgressColor(TimerWindowLastCreated(), Color(0.00, 0.00, 100.00), 1);
+    TimerWindowSetTimer(gv_uI.lv_characterSelectionTimerWindow, gv_uI.lv_characterSelectionTimer);
+    TimerWindowShow(gv_uI.lv_characterSelectionTimerWindow, PlayerGroupAll(), true);
+    DialogCreate(900, 785, c_anchorCenter, 0, 0, true);
+    gv_uI.lv_characterSelection = DialogLastCreated();
+    DialogSetImageVisible(gv_uI.lv_characterSelection, false);
+    libNtve_gf_CreateDialogItemImage(gv_uI.lv_characterSelection, 950, 830, c_anchorCenter, 0, 0, StringToText(""), "Assets\\Textures\\sc2_ui_glues_extendedxp_bg.dds", c_triggerImageTypeNormal, true, Color(100,100,100), c_triggerBlendModeNormal);
+    libNtve_gf_CreateDialogItemImage(gv_uI.lv_characterSelection, 950, 850, c_anchorCenter, 0, 0, StringToText(""), "Assets\\Textures\\tv_border1_blue.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    DialogControlFadeTransparency(DialogControlLastCreated(), PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemLabel(DialogLastCreated(), 200, 50, c_anchorTopLeft, 15, 15, StringExternal("Param/Value/AAC7DAA0"), ColorWithAlpha(0,0,0,0), false, 2.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column1, lv_row1, StringToText(""), "Assets\\Textures\\war3_btnbronzedragon.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[0] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column1, lv_row1, StringExternal("Param/Value/15BAD9F2"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[0] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[0], PlayerGroupAll(), 0.0, 0.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column2, lv_row1, StringToText(""), "Assets\\Textures\\war3_btnbluedragonroost.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[1] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column2, lv_row1, StringExternal("Param/Value/C34E62B8"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[1] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[1], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column3, lv_row1, StringToText(""), "Assets\\Textures\\war3_btnblackdragonroost.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[2] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column3, lv_row1, StringExternal("Param/Value/2C4DAB7C"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[2] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[2], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[2], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[2] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[2], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column4, lv_row1, StringToText(""), "Assets\\Textures\\war3_btnreddragon.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[3] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column4, lv_row1, StringExternal("Param/Value/577ACC3C"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[3] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[3], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[3], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[3] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[3], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column1, lv_row2, StringToText(""), "Assets\\Textures\\war3_btngreendragonspawn.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[4] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column1, lv_row2, StringExternal("Param/Value/15393A83"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[4] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[4], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[4], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[4] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[4], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column2, lv_row2, StringToText(""), "Assets\\Textures\\war3_btnnetherdragon.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[5] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column2, lv_row2, StringExternal("Param/Value/0D0714BA"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[5] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[5], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[5], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[5] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[5], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column3, lv_row2, StringToText(""), "Assets\\Textures\\war3_btnancientofthemoon.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[6] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column3, lv_row2, StringExternal("Param/Value/EC0724DD"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[6] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[6], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[6], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[6] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[6], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column4, lv_row2, StringToText(""), "Assets\\Textures\\war3_btnfaeriedragon.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[7] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column4, lv_row2, StringExternal("Param/Value/59704F3D"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[7] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[7], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[7], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[7] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[7], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 180, 180, c_anchorTopLeft, lv_column26, lv_row35, StringToText(""), "Assets\\Textures\\war3_phoenixportrait.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems3[8] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 200, c_anchorTopLeft, lv_column25, lv_row3, StringExternal("Param/Value/89E0D6F7"), StringToText(""), "");
+    gv_uI.lv_characterSelectionItems[8] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemImage(DialogLastCreated(), 50, 50, c_anchorTopLeft, DialogControlGetOffsetX(gv_uI.lv_characterSelectionItems[8], 1), DialogControlGetOffsetY(gv_uI.lv_characterSelectionItems[8], 1), StringToText(""), "Assets\\Textures\\btn-tips-researchunlocked.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    gv_uI.lv_characterSelectionItems2[8] = DialogControlLastCreated();
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[8], PlayerGroupAll(), 0.0, 60.0);
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 100, c_anchorTopLeft, 30, lv_row4, StringToText(""), StringExternal("Param/Value/4A65DB61"), "");
+    gv_uI.lv_characterSelectionItems[26] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemButton(DialogLastCreated(), 200, 100, c_anchorTopLeft, lv_column25, lv_row4, StringToText(""), StringExternal("Param/Value/B2F7CAAC"), "");
+    gv_uI.lv_characterSelectionItems[12] = DialogControlLastCreated();
+    DialogSetVisible(gv_uI.lv_resultsDialog, PlayerGroupAll(), false);
+    DialogSetVisible(gv_uI.lv_characterSelection, PlayerGroupAll(), true);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_CharacterSelectCreation_Init () {
+    gt_CharacterSelectCreation = TriggerCreate("gt_CharacterSelectCreation_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Lock Selections
+//--------------------------------------------------------------------------------------------------
+bool gt_LockSelections_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        if ((gv_stats[IntLoopCurrent()].lv_raceWins < 1)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[2], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[2], StringExternal("Param/Value/6520D588"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[2], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[2], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+        if ((gv_stats[IntLoopCurrent()].lv_raceWins < 3)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[3], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[3], StringExternal("Param/Value/73866729"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[3], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[3], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+        if ((gv_stats[IntLoopCurrent()].lv_raceWins < 10)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[4], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[4], StringExternal("Param/Value/536A9889"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[4], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[4], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+        if ((gv_stats[IntLoopCurrent()].lv_totalWins < 1)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[5], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[5], StringExternal("Param/Value/FEFA89A9"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[5], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[5], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+        if ((gv_stats[IntLoopCurrent()].lv_raceWins < 20)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[6], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[6], StringExternal("Param/Value/E47032B5"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[6], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[6], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+        if ((gv_stats[IntLoopCurrent()].lv_totalWins < 3)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[7], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[7], StringExternal("Param/Value/EFC67090"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[7], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[7], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+        if ((gv_stats[IntLoopCurrent()].lv_raceWins < 100)) {
+            DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[8], PlayerGroupSingle(IntLoopCurrent()), false);
+            libNtve_gf_SetDialogItemTooltip(gv_uI.lv_characterSelectionItems[8], StringExternal("Param/Value/C354F36A"), PlayerGroupSingle(IntLoopCurrent()));
+            DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[8], PlayerGroupSingle(IntLoopCurrent()), 0.0, 0.0);
+        }
+        else {
+            DialogControlSetVisible(gv_uI.lv_characterSelectionItems2[8], PlayerGroupSingle(IntLoopCurrent()), false);
+        }
+    }
+    IntLoopEnd();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_LockSelections_Init () {
+    gt_LockSelections = TriggerCreate("gt_LockSelections_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Dialog Picked
+//--------------------------------------------------------------------------------------------------
+bool gt_DialogPicked_Func (bool testConds, bool runActions) {
+    int autoB1A354C1_val;
+
+    // Conditions
+    if (testConds) {
+        if (!(((EventDialogControl() == gv_uI.lv_characterSelectionItems[0]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[1]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[2]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[3]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[4]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[5]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[6]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[7]) || (EventDialogControl() == gv_uI.lv_characterSelectionItems[8])))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitRemove(gv_units[EventPlayer()].lv_dragon);
+    autoB1A354C1_val = EventDialogControl();
+    if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[0]) {
+        UnitCreate(1, "Bronzedragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[1]) {
+        UnitCreate(1, "Azuredragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[2]) {
+        UnitCreate(1, "Blackdragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[3]) {
+        UnitCreate(1, "Reddragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[4]) {
+        UnitCreate(1, "Greendragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[5]) {
+        UnitCreate(1, "Netherdragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[6]) {
+        UnitCreate(1, "Windserpent", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[7]) {
+        UnitCreate(1, "Faeriedragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (autoB1A354C1_val == gv_uI.lv_characterSelectionItems[8]) {
+        UnitCreate(1, "War3Phoenix", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else {
+    }
+    gv_units[EventPlayer()].lv_dragon = UnitLastCreated();
+    UnitAbilityEnable(gv_units[EventPlayer()].lv_dragon, "move", false);
+    gv_gameSettings[EventPlayer()].lv_unithasSpawned = true;
+    IntLoopBegin(0, 8);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[IntLoopCurrent()], PlayerGroupSingle(EventPlayer()), true);
+        DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[IntLoopCurrent()], PlayerGroupSingle(EventPlayer()), 0.0, 60.0);
+    }
+    IntLoopEnd();
+    TriggerExecute(gt_LockSelections, true, false);
+    DialogControlSetEnabled(EventDialogControl(), PlayerGroupSingle(EventPlayer()), false);
+    DialogControlFadeTransparency(EventDialogControl(), PlayerGroupSingle(EventPlayer()), 0.0, 0.0);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_DialogPicked_Init () {
+    gt_DialogPicked = TriggerCreate("gt_DialogPicked_Func");
+    TriggerAddEventDialogControl(gt_DialogPicked, c_playerAny, c_invalidDialogControlId, c_triggerControlEventTypeClick);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Done Button
+//--------------------------------------------------------------------------------------------------
+bool gt_DoneButton_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_random;
+
+    // Variable Initialization
+
+    // Conditions
+    if (testConds) {
+        if (!((EventDialogControl() == gv_uI.lv_characterSelectionItems[12]))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    IntLoopBegin(1, 8);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[IntLoopCurrent()], PlayerGroupSingle(EventPlayer()), false);
+        DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[IntLoopCurrent()], PlayerGroupSingle(EventPlayer()), 0.0, 0.0);
+    }
+    IntLoopEnd();
+    DialogControlSetEnabled(gv_uI.lv_characterSelectionItems[12], PlayerGroupSingle(EventPlayer()), false);
+    DialogControlFadeTransparency(gv_uI.lv_characterSelectionItems[12], PlayerGroupSingle(EventPlayer()), 0.0, 0.0);
+    gv_gameSettings[EventPlayer()].lv_playerisDoneSelecting = true;
+    gv_gameSettings[0].lv_playersDonePicking = (gv_gameSettings[0].lv_playersDonePicking + 1);
+    if ((gv_gameSettings[0].lv_playersDonePicking == PlayerGroupCount(PlayerGroupActive()))) {
+        TimerPause(gv_uI.lv_characterSelectionTimer, true);
+        TimerWindowShow(gv_uI.lv_characterSelectionTimerWindow, PlayerGroupAll(), false);
+        DialogSetVisible(gv_uI.lv_characterSelection, PlayerGroupAll(), false);
+        SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown3", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+        UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/1FDC27AF"));
+        Wait(1.0, c_timeGame);
+        SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown2", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+        UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/D32AF2E3"));
+        Wait(1.0, c_timeGame);
+        SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown1", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+        UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/18A0E292"));
+        Wait(1.0, c_timeGame);
+        SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdownGo", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+        UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/CF44FEA8"));
+        UISetWorldVisible(PlayerGroupAll(), true);
+        SoundtrackStop(PlayerGroupAll(), c_soundtrackCategoryMusic, false);
+        SoundtrackPause(PlayerGroupAll(), c_soundtrackCategoryMusic, true, false);
+        SoundChannelStop(PlayerGroupAll(), c_soundCategoryMusic);
+        IntLoopBegin(1, 4);
+        for ( ; !IntLoopDone() ; IntLoopStep() ) {
+            UnitAbilityEnable(gv_units[IntLoopCurrent()].lv_dragon, "move", true);
+        }
+        IntLoopEnd();
+        lv_random = RandomInt(1, 3);
+        if ((lv_random == 1)) {
+            SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "DifferentHeaven2", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+        }
+        else {
+            if ((lv_random == 2)) {
+                SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "StartYourEngines", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+            }
+            else {
+            }
+            if ((lv_random == 3)) {
+                SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "UnknownSoundtrack", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+            }
+            else {
+            }
+        }
+        SoundChannelSetVolume(PlayerGroupAll(), c_soundCategoryMusic, 60.0, 0.0);
+    }
+    else {
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_DoneButton_Init () {
+    gt_DoneButton = TriggerCreate("gt_DoneButton_Func");
+    TriggerAddEventDialogControl(gt_DoneButton, c_playerAny, c_invalidDialogControlId, c_triggerControlEventTypeClick);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Pick Timer Ends
+//--------------------------------------------------------------------------------------------------
+bool gt_PickTimerEnds_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_random;
+
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TimerWindowShow(gv_uI.lv_characterSelectionTimerWindow, PlayerGroupAll(), false);
+    DialogSetVisible(gv_uI.lv_characterSelection, PlayerGroupAll(), false);
+    SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown3", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/9CF1903F"));
+    Wait(1.0, c_timeGame);
+    SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown2", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/3FEFDD07"));
+    Wait(1.0, c_timeGame);
+    SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown1", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/9F87A1F1"));
+    Wait(1.0, c_timeGame);
+    SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdownGo", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/4CF79D24"));
+    UISetWorldVisible(PlayerGroupAll(), true);
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        UnitAbilityEnable(gv_units[IntLoopCurrent()].lv_dragon, "move", true);
+    }
+    IntLoopEnd();
+    lv_random = RandomInt(1, 3);
+    SoundtrackStop(PlayerGroupAll(), c_soundtrackCategoryMusic, false);
+    SoundtrackPause(PlayerGroupAll(), c_soundtrackCategoryMusic, true, false);
+    SoundChannelStop(PlayerGroupAll(), c_soundCategoryMusic);
+    if ((lv_random == 1)) {
+        SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "DifferentHeaven2", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+    }
+    else {
+        if ((lv_random == 2)) {
+            SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "StartYourEngines", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+        }
+        else {
+        }
+        if ((lv_random == 3)) {
+            SoundtrackPlay(PlayerGroupAll(), c_soundtrackCategoryMusic, "UnknownSoundtrack", c_soundtrackCueAny, c_soundtrackIndexAny, true);
+        }
+        else {
+        }
+    }
+    SoundChannelSetVolume(PlayerGroupAll(), c_soundCategoryMusic, 60.0, 0.0);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_PickTimerEnds_Init () {
+    gt_PickTimerEnds = TriggerCreate("gt_PickTimerEnds_Func");
+    TriggerAddEventTimer(gt_PickTimerEnds, gv_uI.lv_characterSelectionTimer);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Select Track
+//--------------------------------------------------------------------------------------------------
+bool gt_SelectTrack_Func (bool testConds, bool runActions) {
+    int autoD584B30F_val;
+
+    // Variable Declarations
+    int lv_random;
+
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_random = RandomInt(1, 9);
+    autoD584B30F_val = lv_random;
+    if (autoD584B30F_val == 1) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(8), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(2);
+    }
+    else if (autoD584B30F_val == 2) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(7), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(6);
+    }
+    else if (autoD584B30F_val == 3) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(4), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(10);
+    }
+    else if (autoD584B30F_val == 4) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(15), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(14);
+    }
+    else if (autoD584B30F_val == 5) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(17), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(16);
+    }
+    else if (autoD584B30F_val == 6) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(23), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(19);
+    }
+    else if (autoD584B30F_val == 7) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(28), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(24);
+    }
+    else if (autoD584B30F_val == 8) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(38), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(30);
+    }
+    else if (autoD584B30F_val == 9) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(37), true);
+        gv_gameSettings[0].lv_startingRegion = RegionFromId(29);
+    }
+    else {
+    }
+    TriggerExecute(gt_CharacterSelect, true, false);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_SelectTrack_Init () {
+    gt_SelectTrack = TriggerCreate("gt_SelectTrack_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Reset
+//--------------------------------------------------------------------------------------------------
+bool gt_Reset_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitGroupLoopBegin(gv_units[0].lv_allUnits);
+    for ( ; !UnitGroupLoopDone() ; UnitGroupLoopStep() ) {
+        UnitRemove(UnitGroupLoopCurrent());
+    }
+    UnitGroupLoopEnd();
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        gv_raceInfo[IntLoopCurrent()].lv_laps = 0;
+        gv_raceInfo[IntLoopCurrent()].lv_place = 0;
+        UnitRemove(gv_units[IntLoopCurrent()].lv_dragon);
+        gv_gameSettings[IntLoopCurrent()].lv_playerisDoneSelecting = false;
+        gv_gameSettings[0].lv_playersDonePicking = 0;
+        gv_gameSettings[IntLoopCurrent()].lv_unithasSpawned = false;
+    }
+    IntLoopEnd();
+    TriggerExecute(gt_SelectTrack, true, false);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Reset_Init () {
+    gt_Reset = TriggerCreate("gt_Reset_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Reset 2
+//--------------------------------------------------------------------------------------------------
+bool gt_Reset2_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitGroupLoopBegin(gv_units[0].lv_allUnits);
+    for ( ; !UnitGroupLoopDone() ; UnitGroupLoopStep() ) {
+        UnitRemove(UnitGroupLoopCurrent());
+    }
+    UnitGroupLoopEnd();
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        gv_raceInfo[IntLoopCurrent()].lv_laps = 0;
+        gv_stats[IntLoopCurrent()].lv_points = 0;
+        gv_raceInfo[IntLoopCurrent()].lv_place = 0;
+        UnitRemove(gv_units[IntLoopCurrent()].lv_dragon);
+        gv_gameSettings[IntLoopCurrent()].lv_playerisDoneSelecting = false;
+        gv_gameSettings[0].lv_playersDonePicking = 0;
+        gv_gameSettings[IntLoopCurrent()].lv_unithasSpawned = false;
+    }
+    IntLoopEnd();
+    TriggerExecute(gt_SelectTrack, true, false);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Reset2_Init () {
+    gt_Reset2 = TriggerCreate("gt_Reset2_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Ports
+//--------------------------------------------------------------------------------------------------
+bool gt_Ports_Func (bool testConds, bool runActions) {
+    region auto9E5D3120_val;
+
+    // Conditions
+    if (testConds) {
+        if (!(((UnitGetOwner(EventUnit()) == 1) || (UnitGetOwner(EventUnit()) == 2) || (UnitGetOwner(EventUnit()) == 3) || (UnitGetOwner(EventUnit()) == 4)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    auto9E5D3120_val = EventUnitRegion();
+    if (auto9E5D3120_val == RegionFromId(1)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(2)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(3)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(6)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(9)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(10)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(13)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(14)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(18)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(16)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(20)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(21)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(22)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(19)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(25)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(26)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(27)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(24)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(31)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(32)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(33)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(34)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(35)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(30)), false);
+    }
+    else if (auto9E5D3120_val == RegionFromId(36)) {
+        UnitSetPosition(EventUnit(), RegionRandomPoint(RegionFromId(29)), false);
+    }
+    else {
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Ports_Init () {
+    gt_Ports = TriggerCreate("gt_Ports_Func");
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(1), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(3), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(9), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(13), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(18), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(20), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(22), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(25), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(27), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(31), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(33), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(35), true);
+    TriggerAddEventUnitRegion(gt_Ports, null, RegionFromId(36), true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Water/Lava
+//--------------------------------------------------------------------------------------------------
+bool gt_WaterLava_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if (((EventUnitRegion() == RegionFromId(5)) || (EventUnitRegion() == RegionFromId(11)) || (EventUnitRegion() == RegionFromId(41)))) {
+        UnitBehaviorAdd(EventUnit(), "Water", UnitFromId(4), 1);
+    }
+    else {
+        UnitBehaviorAdd(EventUnit(), "Lava", UnitFromId(4), 1);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_WaterLava_Init () {
+    gt_WaterLava = TriggerCreate("gt_WaterLava_Func");
+    TriggerAddEventUnitRegion(gt_WaterLava, null, RegionFromId(5), true);
+    TriggerAddEventUnitRegion(gt_WaterLava, null, RegionFromId(11), true);
+    TriggerAddEventUnitRegion(gt_WaterLava, null, RegionFromId(41), true);
+    TriggerAddEventUnitRegion(gt_WaterLava, null, RegionFromId(12), true);
+    TriggerAddEventUnitRegion(gt_WaterLava, null, RegionFromId(39), true);
+    TriggerAddEventUnitRegion(gt_WaterLava, null, RegionFromId(40), true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Water/Lava 2
+//--------------------------------------------------------------------------------------------------
+bool gt_WaterLava2_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if (((EventUnitRegion() == RegionFromId(5)) || (EventUnitRegion() == RegionFromId(11)) || (EventUnitRegion() == RegionFromId(41)))) {
+        UnitBehaviorRemove(EventUnit(), "Water", 1);
+    }
+    else {
+        UnitBehaviorRemove(EventUnit(), "Lava", 1);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_WaterLava2_Init () {
+    gt_WaterLava2 = TriggerCreate("gt_WaterLava2_Func");
+    TriggerAddEventUnitRegion(gt_WaterLava2, null, RegionFromId(5), false);
+    TriggerAddEventUnitRegion(gt_WaterLava2, null, RegionFromId(11), false);
+    TriggerAddEventUnitRegion(gt_WaterLava2, null, RegionFromId(41), false);
+    TriggerAddEventUnitRegion(gt_WaterLava2, null, RegionFromId(12), false);
+    TriggerAddEventUnitRegion(gt_WaterLava2, null, RegionFromId(39), false);
+    TriggerAddEventUnitRegion(gt_WaterLava2, null, RegionFromId(40), false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Fantasy Attacks
+//--------------------------------------------------------------------------------------------------
+bool gt_FantasyAttacks_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitIssueOrder(UnitFromId(78), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(79)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(81), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(82)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(72), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(73)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(84), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(86)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(74), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(88)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(76), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(87)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(75), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(25)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(119), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(131)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(120), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(132)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(121), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(133)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(122), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(134)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(123), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(135)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(124), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(136)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(98), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(107)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(92), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(101)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(93), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(102)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(94), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(103)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(95), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(104)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(96), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(105)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(97), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(106)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(100), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(108)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(99), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(109)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(125), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(129)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(126), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(128)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(127), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(130)), c_orderQueueReplace);
+    UnitIssueOrder(UnitFromId(77), OrderTargetingPoint(AbilityCommand("move", 1), PointFromId(50)), c_orderQueueReplace);
+    while (true) {
+        UnitIssueOrder(UnitFromId(37), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(39)), c_orderQueueReplace);
+        UnitIssueOrder(UnitFromId(34), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(44)), c_orderQueueReplace);
+        UnitIssueOrder(UnitFromId(32), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(47)), c_orderQueueReplace);
+        UnitIssueOrder(UnitFromId(30), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(49)), c_orderQueueReplace);
+        UnitIssueOrder(UnitFromId(13), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(57)), c_orderQueueReplace);
+        UnitIssueOrder(UnitFromId(14), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(46)), c_orderQueueReplace);
+        UnitIssueOrder(UnitFromId(18), OrderTargetingPoint(AbilityCommand("War3Attack", 0), PointFromId(53)), c_orderQueueReplace);
+        Wait(2.0, c_timeGame);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_FantasyAttacks_Init () {
+    gt_FantasyAttacks = TriggerCreate("gt_FantasyAttacks_Func");
+    TriggerAddEventMapInit(gt_FantasyAttacks);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Laps
+//--------------------------------------------------------------------------------------------------
+bool gt_Laps_Func (bool testConds, bool runActions) {
+    // Conditions
+    if (testConds) {
+        if (!(((EventUnit() == gv_units[1].lv_dragon) || (EventUnit() == gv_units[2].lv_dragon) || (EventUnit() == gv_units[3].lv_dragon) || (EventUnit() == gv_units[4].lv_dragon)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps = (gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps + 1);
+    gv_stats[UnitGetOwner(EventUnit())].lv_winnings = 0;
+    if ((gv_raceInfo[1].lv_place == 0) && (gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps == 3)) {
+        gv_raceInfo[1].lv_place = UnitGetOwner(EventUnit());
+        gv_uI.lv_finishedMatch[UnitGetOwner(EventUnit())] = true;
+        TimerStart(gv_uI.lv_finishTimer, 15.0, false, c_timeGame);
+        gv_uI.lv_finishTimer = TimerLastStarted();
+        TimerWindowCreate(gv_uI.lv_finishTimer, StringExternal("Param/Value/2B9C7D54"), true, false);
+        gv_uI.lv_finishTimerWindow = TimerWindowLastCreated();
+        TimerWindowShowProgressBar(gv_uI.lv_finishTimerWindow, true);
+        TimerWindowSetProgressColor(TimerWindowLastCreated(), Color(100.00, 0.00, 0.00), 1);
+        TimerWindowSetPosition(gv_uI.lv_finishTimerWindow, 800, 50);
+        TimerWindowShow(gv_uI.lv_finishTimerWindow, PlayerGroupAll(), true);
+        gv_stats[UnitGetOwner(EventUnit())].lv_points = (gv_stats[UnitGetOwner(EventUnit())].lv_points + 10);
+        gv_stats[UnitGetOwner(EventUnit())].lv_raceWins = (gv_stats[UnitGetOwner(EventUnit())].lv_raceWins + 1);
+        gv_stats[UnitGetOwner(EventUnit())].lv_winnings = 10;
+        gf_StoreBankInfo();
+        TriggerExecute(gt__50RaceWins, true, false);
+        SoundPlayForPlayer(SoundLink("ModUtilityVoiceModUtilityVoice00108", -1), c_maxPlayers, PlayerGroupSingle(UnitGetOwner(EventUnit())), 100.0, 0.0);
+        if ((PlayerGroupCount(PlayerGroupActive()) == 1)) {
+            TimerPause(gv_uI.lv_finishTimer, true);
+            TriggerExecute(gt_Results, true, false);
+        }
+        else {
+        }
+    }
+    else {
+        if ((gv_raceInfo[2].lv_place == 0) && (gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps == 3)) {
+            gv_raceInfo[2].lv_place = UnitGetOwner(EventUnit());
+            gv_stats[UnitGetOwner(EventUnit())].lv_points = (gv_stats[UnitGetOwner(EventUnit())].lv_points + 7);
+            gv_stats[UnitGetOwner(EventUnit())].lv_winnings = 7;
+            gf_StoreBankInfo();
+            SoundPlayForPlayer(SoundLink("ModUtilityVoiceModUtilityVoice00109", -1), c_maxPlayers, PlayerGroupSingle(UnitGetOwner(EventUnit())), 100.0, 0.0);
+            gv_uI.lv_finishedMatch[UnitGetOwner(EventUnit())] = true;
+            if ((PlayerGroupCount(PlayerGroupActive()) == 2)) {
+                TimerPause(gv_uI.lv_finishTimer, true);
+                TriggerExecute(gt_Results, true, false);
+            }
+            else {
+            }
+        }
+        else {
+            if ((gv_raceInfo[3].lv_place == 0) && (gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps == 3)) {
+                gv_raceInfo[3].lv_place = UnitGetOwner(EventUnit());
+                gv_stats[UnitGetOwner(EventUnit())].lv_points = (gv_stats[UnitGetOwner(EventUnit())].lv_points + 3);
+                gv_stats[UnitGetOwner(EventUnit())].lv_winnings = 3;
+                gf_StoreBankInfo();
+                SoundPlayForPlayer(SoundLink("ModUtilityVoiceModUtilityVoice00110", -1), c_maxPlayers, PlayerGroupSingle(UnitGetOwner(EventUnit())), 100.0, 0.0);
+                gv_uI.lv_finishedMatch[UnitGetOwner(EventUnit())] = true;
+                if ((PlayerGroupCount(PlayerGroupActive()) == 3)) {
+                    TimerPause(gv_uI.lv_finishTimer, true);
+                    TriggerExecute(gt_Results, true, false);
+                }
+                else {
+                }
+            }
+            else {
+                if ((gv_raceInfo[4].lv_place == 0) && (gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps == 3)) {
+                    gv_raceInfo[4].lv_place = UnitGetOwner(EventUnit());
+                    gv_stats[UnitGetOwner(EventUnit())].lv_points = (gv_stats[UnitGetOwner(EventUnit())].lv_points + 1);
+                    gv_stats[UnitGetOwner(EventUnit())].lv_winnings = 1;
+                    gf_StoreBankInfo();
+                    SoundPlayForPlayer(SoundLink("ModUtilityVoiceModUtilityVoice00109", -1), c_maxPlayers, PlayerGroupSingle(UnitGetOwner(EventUnit())), 100.0, 0.0);
+                    gv_uI.lv_finishedMatch[UnitGetOwner(EventUnit())] = true;
+                    TimerPause(gv_uI.lv_finishTimer, true);
+                    TriggerExecute(gt_Results, true, false);
+                }
+                else {
+                    UIDisplayMessage(PlayerGroupSingle(UnitGetOwner(EventUnit())), c_messageAreaSubtitle, (StringExternal("Param/Value/DB74B3E8") + IntToText((gv_raceInfo[UnitGetOwner(EventUnit())].lv_laps + 1))));
+                }
+            }
+        }
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Laps_Init () {
+    gt_Laps = TriggerCreate("gt_Laps_Func");
+    TriggerEnable(gt_Laps, false);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(1), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(3), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(9), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(13), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(18), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(22), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(27), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(35), true);
+    TriggerAddEventUnitRegion(gt_Laps, null, RegionFromId(36), true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Results
+//--------------------------------------------------------------------------------------------------
+bool gt_Results_Func (bool testConds, bool runActions) {
+    int autoAD49293A_val;
+    int auto6CC30E9E_n;
+    int auto6CC30E9E_i;
+
+    // Variable Declarations
+    int[5] lv_counter;
+    int lv_offset;
+    bool[5] lv_winning;
+    int lv_counter2;
+    int lv_random;
+    playergroup lv_winningplayers;
+    int lv_highestscore;
+
+    // Variable Initialization
+    lv_offset = -175;
+    lv_winningplayers = PlayerGroupEmpty();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TimerWindowShow(gv_uI.lv_finishTimerWindow, PlayerGroupAll(), false);
+    DialogSetVisible(gv_uI.lv_resultsDialog, PlayerGroupAll(), true);
+    UISetWorldVisible(PlayerGroupAll(), false);
+    TriggerEnable(gt_Laps, false);
+    SoundPlayForPlayer(SoundLink("UI_Bnet_MatchCountdown3", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    SoundtrackPause(PlayerGroupAll(), c_soundtrackCategoryMusic, true, false);
+    SoundtrackStop(PlayerGroupAll(), c_soundtrackCategoryMusic, false);
+    SoundChannelStop(PlayerGroupAll(), c_soundCategoryMusic);
+    lv_random = RandomInt(1, 3);
+    autoAD49293A_val = lv_random;
+    if (autoAD49293A_val == 1) {
+        SoundPlayForPlayer(SoundLink("DifferentHeaven", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    }
+    else if (autoAD49293A_val == 2) {
+        SoundPlayForPlayer(SoundLink("HappyAccidents", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    }
+    else if (autoAD49293A_val == 3) {
+        SoundPlayForPlayer(SoundLink("UnknownSound", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+    }
+    else {
+    }
+    SoundChannelSetVolume(PlayerGroupAll(), c_soundCategoryMusic, 60.0, 0.0);
+    DialogCreate(900, 800, c_anchorCenter, 0, 0, true);
+    gv_uI.lv_resultsDialog = DialogLastCreated();
+    libNtve_gf_CreateDialogItemImage(gv_uI.lv_resultsDialog, 900, 500, c_anchorTop, 0, 0, StringToText(""), "Assets\\Textures\\storm_ui_glues_loading_playerframe_red.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    libNtve_gf_CreateDialogItemImage(gv_uI.lv_resultsDialog, 900, 300, c_anchorBottom, 0, 0, StringToText(""), "Assets\\Textures\\storm_ui_glues_loading_playerframe_red.dds", c_triggerImageTypeNormal, false, Color(100,100,100), c_triggerBlendModeNormal);
+    libNtve_gf_CreateDialogItemLabel(DialogLastCreated(), 400, 50, c_anchorBottom, 50, 0, StringExternal("Param/Value/6C3EA80B"), Color(22*100/255,128*100/255,0), false, 2.0);
+    gv_uI.lv_resultLabels[5] = DialogControlLastCreated();
+    libNtve_gf_CreateDialogItemLabel(DialogLastCreated(), 400, 150, c_anchorTop, 50, 50, StringExternal("Param/Value/49E76AD2"), Color(0,66*100/255,100), false, 2.0);
+    gv_uI.lv_resultLabels[0] = DialogControlLastCreated();
+    DialogSetVisible(gv_uI.lv_resultsDialog, PlayerGroupAll(), true);
+    PlayerGroupLoopBegin(PlayerGroupActive());
+    for ( ; !PlayerGroupLoopDone() ; PlayerGroupLoopStep() ) {
+        lv_counter[PlayerGroupLoopCurrent()] = 0;
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_resultsDialog, 400, 150, c_anchorLeft, 50, lv_offset, TextWithColor(PlayerName(PlayerGroupLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(PlayerGroupLoopCurrent(), false))), ColorWithAlpha(0,0,0,0), false, 2.0);
+        libNtve_gf_SetDialogItemStyle(DialogControlLastCreated(), "ChallengeScoreScreenScore", PlayerGroupAll());
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_resultsDialog, 200, 50, c_anchorRight, 50, lv_offset, (StringExternal("Param/Value/CC73992E") + IntToText(gv_stats[PlayerGroupLoopCurrent()].lv_winnings)), ColorWithAlpha(0,0,0,0), false, 2.0);
+        libNtve_gf_CreateDialogItemLabel(gv_uI.lv_resultsDialog, 200, 50, c_anchorRight, 50, (lv_offset + 25), IntToText(lv_counter[PlayerGroupLoopCurrent()]), ColorWithAlpha(0,0,0,0), false, 2.0);
+        gv_uI.lv_resultLabels[PlayerGroupLoopCurrent()] = DialogControlLastCreated();
+        lv_counter[PlayerGroupLoopCurrent()] = (gv_stats[PlayerGroupLoopCurrent()].lv_points - 10);
+        auto6CC30E9E_n = 10;
+        for (auto6CC30E9E_i = 1; auto6CC30E9E_i <= auto6CC30E9E_n; auto6CC30E9E_i += 1) {
+            lv_counter[PlayerGroupLoopCurrent()] = (lv_counter[PlayerGroupLoopCurrent()] + 1);
+            SoundPlayForPlayer(SoundLink("UI_Bnet_PopUp_Generic", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+            DialogControlDestroy(gv_uI.lv_resultLabels[PlayerGroupLoopCurrent()]);
+            libNtve_gf_CreateDialogItemLabel(gv_uI.lv_resultsDialog, 200, 50, c_anchorRight, 50, (lv_offset + 25), IntToText(lv_counter[PlayerGroupLoopCurrent()]), ColorWithAlpha(0,0,0,0), false, 2.0);
+            gv_uI.lv_resultLabels[PlayerGroupLoopCurrent()] = DialogControlLastCreated();
+            libNtve_gf_SetDialogItemColor(DialogControlLastCreated(), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(PlayerGroupLoopCurrent(), false)), PlayerGroupAll());
+            Wait(0.1, c_timeGame);
+        }
+        lv_offset = (lv_offset + 155);
+    }
+    PlayerGroupLoopEnd();
+    Wait(4.0, c_timeGame);
+    PlayerGroupLoopBegin(PlayerGroupActive());
+    for ( ; !PlayerGroupLoopDone() ; PlayerGroupLoopStep() ) {
+        if ((gv_stats[PlayerGroupLoopCurrent()].lv_points >= 60)) {
+            lv_winning[PlayerGroupLoopCurrent()] = true;
+            lv_counter2 = (lv_counter2 + 1);
+            PlayerGroupAdd(lv_winningplayers, PlayerGroupLoopCurrent());
+            DialogSetVisible(gv_uI.lv_resultsDialog, PlayerGroupAll(), false);
+        }
+        else {
+        }
+    }
+    PlayerGroupLoopEnd();
+    if ((lv_counter2 > 1)) {
+        lv_highestscore = MaxI(MaxI(gv_stats[1].lv_points, gv_stats[2].lv_points), MaxI(gv_stats[3].lv_points, gv_stats[4].lv_points));
+        PlayerGroupLoopBegin(lv_winningplayers);
+        for ( ; !PlayerGroupLoopDone() ; PlayerGroupLoopStep() ) {
+            if ((gv_stats[PlayerGroupLoopCurrent()].lv_points == lv_highestscore)) {
+                SoundPlayForPlayer(SoundLink("ModUtilityVoiceModUtilityVoice00078", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+                UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, (TextWithColor(PlayerName(PlayerGroupLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(PlayerGroupLoopCurrent(), false))) + StringExternal("Param/Value/2E9FE3EF")));
+                UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/8F1D040C"));
+                gv_stats[PlayerGroupLoopCurrent()].lv_totalWins = (gv_stats[PlayerGroupLoopCurrent()].lv_totalWins + 1);
+                gf_StoreBankInfo();
+                TriggerExecute(gt__50Wins, true, false);
+                Wait(15.0, c_timeGame);
+                TriggerExecute(gt_Reset2, true, false);
+                return true;
+            }
+            else {
+            }
+        }
+        PlayerGroupLoopEnd();
+    }
+    else {
+        PlayerGroupLoopBegin(lv_winningplayers);
+        for ( ; !PlayerGroupLoopDone() ; PlayerGroupLoopStep() ) {
+            if ((lv_winning[PlayerGroupLoopCurrent()] == true)) {
+                SoundPlayForPlayer(SoundLink("ModUtilityVoiceModUtilityVoice00078", -1), c_maxPlayers, PlayerGroupAll(), 100.0, 0.0);
+                UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, (TextWithColor(PlayerName(PlayerGroupLoopCurrent()), libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(PlayerGroupLoopCurrent(), false))) + StringExternal("Param/Value/DB17B124")));
+                UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/3B79FE35"));
+                gv_stats[PlayerGroupLoopCurrent()].lv_totalWins = (gv_stats[PlayerGroupLoopCurrent()].lv_totalWins + 1);
+                gf_StoreBankInfo();
+                TriggerExecute(gt__50Wins, true, false);
+                Wait(15.0, c_timeGame);
+                TriggerExecute(gt_Reset2, true, false);
+                return true;
+            }
+            else {
+            }
+        }
+        PlayerGroupLoopEnd();
+        TriggerExecute(gt_Reset, true, false);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Results_Init () {
+    gt_Results = TriggerCreate("gt_Results_Func");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Unit is Created
+//--------------------------------------------------------------------------------------------------
+bool gt_UnitisCreated_Func (bool testConds, bool runActions) {
+    // Conditions
+    if (testConds) {
+        if (!(((UnitGetOwner(EventUnit()) == 15) || (UnitGetOwner(EventUnit()) == 0)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitGroupAdd(gv_units[0].lv_allUnits, EventUnitCreatedUnit());
+    UnitGroupAdd(gv_units[UnitGetOwner(EventUnit())].lv_playerUnit, EventUnitCreatedUnit());
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_UnitisCreated_Init () {
+    gt_UnitisCreated = TriggerCreate("gt_UnitisCreated_Func");
+    TriggerAddEventUnitCreated(gt_UnitisCreated, null, null, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Camera
+//--------------------------------------------------------------------------------------------------
+bool gt_Camera_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    IntLoopBegin(1, 4);
+    for ( ; !IntLoopDone() ; IntLoopStep() ) {
+        if ((gv_uI.lv_finishedMatch[IntLoopCurrent()] == false)) {
+            CameraPan(IntLoopCurrent(), UnitGetPosition(gv_units[IntLoopCurrent()].lv_dragon), 0.2, -1, 0.0, false);
+            UnitSelect(gv_units[IntLoopCurrent()].lv_dragon, IntLoopCurrent(), true);
+        }
+        else {
+        }
+    }
+    IntLoopEnd();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Camera_Init () {
+    gt_Camera = TriggerCreate("gt_Camera_Func");
+    TriggerEnable(gt_Camera, false);
+    TriggerAddEventTimePeriodic(gt_Camera, 0.001, c_timeGame);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Codes
+//--------------------------------------------------------------------------------------------------
+bool gt_Codes_Func (bool testConds, bool runActions) {
+    string auto8EE10241_val;
+
+    // Conditions
+    if (testConds) {
+        if (!(((gv_gameSettings[EventPlayer()].lv_playerID == "") || (gv_gameSettings[EventPlayer()].lv_playerID == "1-S2-1-2399006")))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    auto8EE10241_val = EventChatMessage(false);
+    if (auto8EE10241_val == "-restart") {
+        TriggerExecute(gt_Reset, true, false);
+    }
+    else if (auto8EE10241_val == "-ID") {
+        IntLoopBegin(1, 4);
+        for ( ; !IntLoopDone() ; IntLoopStep() ) {
+            TriggerDebugOutput(1, (PlayerName(IntLoopCurrent()) + StringToText(gv_gameSettings[IntLoopCurrent()].lv_playerID)), true);
+        }
+        IntLoopEnd();
+    }
+    else if (auto8EE10241_val == "-lap3") {
+        gv_raceInfo[EventPlayer()].lv_laps = 2;
+        UnitSetPosition(gv_units[EventPlayer()].lv_dragon, RegionRandomPoint(RegionFromId(1)), false);
+    }
+    else if (auto8EE10241_val == "-faerie") {
+        UnitCreate(1, "Faeriedragon", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (auto8EE10241_val == "-phoenix") {
+        UnitCreate(1, "War3Phoenix", 0, EventPlayer(), RegionRandomPoint(gv_gameSettings[0].lv_startingRegion), 90.0);
+    }
+    else if (auto8EE10241_val == "-unlockall") {
+        gv_stats[0].lv_raceWins = 1000;
+        gv_stats[0].lv_totalWins = 1000;
+        gf_StoreBankInfo();
+        TriggerExecute(gt_Reset, true, false);
+    }
+    else if (auto8EE10241_val == "-resetstats") {
+        gv_stats[0].lv_raceWins = 0;
+        gv_stats[0].lv_totalWins = 0;
+        gf_StoreBankInfo();
+        TriggerExecute(gt_Reset, true, false);
+    }
+    else {
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Codes_Init () {
+    gt_Codes = TriggerCreate("gt_Codes_Func");
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-restart", true);
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-lap3", true);
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-faerie", true);
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-unlockall", true);
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-phoenix", true);
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-ID", true);
+    TriggerAddEventChatMessage(gt_Codes, c_playerAny, "-resetstats", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Statistics
+//--------------------------------------------------------------------------------------------------
+bool gt_Statistics_Func (bool testConds, bool runActions) {
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Statistics_Init () {
+    gt_Statistics = TriggerCreate("gt_Statistics_Func");
+    TriggerEnable(gt_Statistics, false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Race Timer Ends
+//--------------------------------------------------------------------------------------------------
+bool gt_RaceTimerEnds_Func (bool testConds, bool runActions) {
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TriggerExecute(gt_Results, true, false);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_RaceTimerEnds_Init () {
+    gt_RaceTimerEnds = TriggerCreate("gt_RaceTimerEnds_Func");
+    TriggerAddEventTimer(gt_RaceTimerEnds, gv_uI.lv_finishTimer);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger Initialization
+//--------------------------------------------------------------------------------------------------
+void InitTriggers () {
+    gt_MeleeInitialization_Init();
+    gt_Fishy_Init();
+    gt_AlphaTest_Init();
+    gt__50Wins_Init();
+    gt__50RaceWins_Init();
+    gt_CreateAchievementDialog_Init();
+    gt_CharacterSelect_Init();
+    gt_CharacterSelectCreation_Init();
+    gt_LockSelections_Init();
+    gt_DialogPicked_Init();
+    gt_DoneButton_Init();
+    gt_PickTimerEnds_Init();
+    gt_SelectTrack_Init();
+    gt_Reset_Init();
+    gt_Reset2_Init();
+    gt_Ports_Init();
+    gt_WaterLava_Init();
+    gt_WaterLava2_Init();
+    gt_FantasyAttacks_Init();
+    gt_Laps_Init();
+    gt_Results_Init();
+    gt_UnitisCreated_Init();
+    gt_Camera_Init();
+    gt_Codes_Init();
+    gt_Statistics_Init();
+    gt_RaceTimerEnds_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Map Initialization
+//--------------------------------------------------------------------------------------------------
+void InitMap () {
+    InitLibs();
+    InitGlobals();
+    InitTriggers();
+}
