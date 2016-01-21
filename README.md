@@ -18,7 +18,7 @@ This editor is required to be able to make games and mods for the Arcade. There 
 
 The editor is written and writes code in what is known as **"Galaxy"**. This is a C-based language with hundreds if not thousands of custom functions built in. The Trigger editor mentioned above is what will be coding in this. While the drop down style will be easy to read, it has all of the programming concepts of other languages. Meanwhile, people who want to code using the script, will see what is similar to other programming styles of C with hard coding and typing it all out with little auto finishing capability. It is important to note that both styles of programming have the same capabilities and one is not worse than the other.
 
-Map dependencies are also used in order to provide a wise range of art, music, and other premade assets which are shared to us from Blizzard and we are allowed to use it for the Arcade through their service agreement. This is optimal for people who are not skilled in high quality models and sound.
+Map dependencies are also used in order to provide a wise range of art, music, and other premade assets which are shared to us from Blizzard and we are allowed to use it for the Arcade through their service agreement. This is optimal for people who are not skilled in creating high quality models and sound.
 
 ## Where can I start learning?
 Personally, I am self taught. Seeing that there are not really classes about this, I recommend doing the same. There a multitude of tutorials around the internet (like [this](http://wiki.sc2mapster.com/Tutorials)) which will have everything you need to know to start making projects. I also have put out this project as open source for this reason.
